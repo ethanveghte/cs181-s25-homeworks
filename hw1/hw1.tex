@@ -1,4 +1,4 @@
-\documentclass[submit]{../harvardml}
+\documentclass[submit]{harvardml}
 
 
 \course{CS1810-S25}
@@ -16,7 +16,7 @@
 \usepackage{color}
 \usepackage{todonotes}
 \usepackage{listings}
-\usepackage{../common}
+\usepackage{common}
 \usepackage{framed}
 \usepackage{float}
 \usepackage{ifthen}
@@ -198,7 +198,53 @@ dictates how quickly the kernel decays).
 
 \newpage
 \begin{solution}
-	Your solution here.
+
+\begin{enumerate}
+    \item \begin{enumerate}
+        \item For $k=1$, it is closely fit to the data points. It simply uses the closest neighbor as the estimation, so it will jump between given data points. As a result, if we are expecting there to be noise in the data, the model here would incorporate that noise too much into the prediction. With $k=3$ the fit of the model does better to recognize the trends of the data without being overly complex. This is because it averages the temperatures between the nearest 3 points. As a result, if one point may be to extreme, its neighbors have a normalizing affect that would improve the generalizability of the model. The final k-value, $k=N-1$ is too simplistic. It is nearly the group mean, however, since it leaves out 1 point in the average, it has a small step in the middle. This does a poor job of fitting the data as it is unable to incorporate the data's trends into the model complexity. 
+        \begin{figure}[htp]
+            \centering
+            \includegraphics[width=0.5\linewidth]{img_output/p1.1a.png}
+            \caption{k-Nearest Neighbors}
+            \label{fig:enter-label}
+        \end{figure}
+
+        \item 
+        MSE for k = 1: 1.74
+        \\MSE for k = 3: 3.89
+        \\MSE for k = N-1: 9.73
+        \\ The solution with the lowest MSE is $k=1$. Thus clearly the test data has comparable trends to the training data, and our worry about this model potentially overfitting are somewhat assuaged. 
+        
+    \end{enumerate}
+
+    \item 
+    \begin{enumerate}
+        \item As $\tau$ increases, the model decays at a slower rate. This means that for the low values of $\tau$ like $\tau = 1$, the kernel function decays fast and thus puts more emphasis on points closer to the input value. This is why on the graph you can see a more jagged plot, and one that fits closer to the individual data points around it. For $\tau =50$ the fit is a little smoother. This will decay a little slower, which means that the proportion of the weights placed on points close to the input value versus those further away is closer to 1, and thus will smooth out the plot more. With the largest $\tau$, $\tau = 2500$, it still puts more weight on those closer to the input value than those further away, however, it incorporates the values further away more than the other $\tau$ values. This results in a less dramatic plot as the changes in the input value have less difference in the weights of which points are emphasized because they are all more equally recognized. 
+        \begin{figure}[htp]
+            \centering
+            \includegraphics[width=0.5\linewidth]{img_output/p1.2a.png}
+            \caption{Kernelized Regression}
+            \label{fig:enter-label}
+        \end{figure}
+        \\\\\\\\
+        \item
+        $$\text{MSE} = \frac{1}{M}*\sum_{m=1}^M(\frac{\sum_{n=1}^N K_{\tau}(x_n, x_m')y_n}{\sum_{n=1}^N K_{\tau}(x_n, x_m')} - y_m')^2 $$
+        
+        \item 
+        MSE for $\tau = 1: 1.95$
+        \\MSE for $\tau = 50: 1.86$
+        \\MSE for $\tau = 2500: 8.33$
+        \\ The model with the lowest MSE is when $\tau = 50$. This makes sense, because it is the model that is capable of recognizing the variance in the dataset, without being too locked into the given data points as to be overfit. We can see that it captures the trends of the data well, without being overly complex, which demonstrates it will generalize well (as we see by it having the lowest MSE). We do not want to choose our $\tau$ value based on $\mathcal{D}_\texttt{train}$ because that is what our model is trained on, thus if we were to see which model (i.e. which $\tau$) fits that data the best, it will obviously be the one fits exactly to the given data (i.e. $\tau = 1$). However, we want a model that has predictive power beyond the given data, and so fitting the training data exactly, is not a good thing in most cases. As such, we should choose $\tau$ based on its predictive capabilities outside our training data, using a test set. 
+
+        \item
+        The time and space complexities of kernelized regression grow linearly. Finding all of the kernel weights, relies on calculations with all of the training points, thus is $O(N)$, in both time and space, as you need $O(N)$ calculations (time) and need to store those weights, and the actually training data  (space). Then when actually calculating the prediction $f_{\tau}(x^*)$ for $x^*$, you rely on all of those weights (i.e. $O(N)$ again). In the end, growth in the size of training set, increases the time and space complexity linearly as it relies on all of the training points for calculations. 
+        \\ For kNN, the growth of complexities is also linear to some extent (depends a little on implementation). You have to check the distances to every point in training set ($O(N)$), in order to find the k-nearest neighbors. There is some pre-processing that you could do to reduce the complexity of this by ordering your training points, and doing a reduction to sorting for finding the nearest neighbors, however using the implementation provided, calculations with all training points is necessary. Furthermore, the sorting of distances after each calculation is $O(n\log n)$, so does not affect the asymptotic complexity. Then the final prediction calculation is more dependent on $k$ ($T_{f_{\tau}} = O(k)$). Which, if $k=N$ then you will rely on all of the training points. Meaning a larger $N$ means more time and space complexity (also linear in growth).
+
+        \item As $\tau \rightarrow 0$ then the kernel function will go to 0 at a really fast pace when the value of $(x-x')^2$ increases. This results in a highly peaked function that decays really fast. This means that the Kernel function will assign tangible weights to the nearest points, and near 0 weights to anything remotely distanced. The largest weight $K(x,x^*)= \exp (-\frac{(x-x^*)^2}{\tau})$ will occur when $\frac{(x-x^*)^2}{\tau}$ is the smallest value. Since $\tau \rightarrow 0$ then we need the denominator to be really small in order to offset dividing by a small number. This will only occur when $(x-x^*)$ is a small number (i.e. $x$ and $x^*$ are very close to each other). This results in $f_{\tau}(x^*) = y_{n^*}$ where $y_{n^*}$ is the output value of the point closest to $x^*$. Any point that is not the nearest point will have a proportionally tiny weight comparatively thus will have little to no effect.
+        
+    \end{enumerate}
+\end{enumerate}
+
 \end{solution}
 
 
@@ -245,13 +291,32 @@ expectation taken over the joint distribution $p(x,y)$. This essentially just me
 
 \newpage
 \begin{solution}
-	Your solution here.
+	\begin{enumerate}
+	    \item To derive the optimal $w$ that minimizes the expected        squared loss lets first put $\hat{y}$ and $y$ in terms of          moments of the distribution. 
+            $$E_{x,y}[(y-\hat{y})^2]=E[(y-wx)^2]=E[y^2-2wxy+w^2x^2]$$
+            Linearity of expectation can separate the arithmetic
+            $$E[y^2-2wxy+w^2x^2]= E[y^2]-2wE[xy]+w^2E[x^2]$$
+            To find optimal $w$ set the derivative with respect to $w$ equal to 0.
+            $$\frac{d(E[y^2]-2wE[xy]+w^2E[x^2])}{dw} = 0 = -2E_{x,y}[xy]+2wE_x[x^2]$$
+            $$w = \frac{E_{x,y}[xy]}{E_x[x^2]}$$
+
+            \item In order to estimate $E_x[x^2]$ and $E_{x,y}[xy]$ based on the observed data, you can use sums to find the averages in the data. 
+            $$E_x[x^2] = \frac{1}{N}\sum_{n=1}^N x_n^2$$
+            $$E_{x,y}[xy] = \frac{1}{N}\sum_{n=1}^N x_ny_n$$
+
+            \item Substituted in $$w^* = \frac{\frac{1}{N}\sum_{n=1}^N x_ny_n}{\frac{1}{N}\sum_{n=1}^N x_n^2}$$
+            $\hat{w}$ in HW0 was $\bm{\hat w} = (\bm X^\top \bm X)^{-1}\bm X^\top \bm y$, which if we were to use just a singular moment, that is, a singular column vector for $x$ then $\bm X^\top \bm X = \sum_{n=1}^N x_n^2$, and the inverse is $\frac{1}{\sum_{n=1}^N x_n^2}$. Second $\bm X^\top \bm y = \sum_{n=1}^N x_ny_n$ and put together: 
+            $$\frac{1}{\sum_{n=1}^N x_n^2} * \sum_{n=1}^N x_ny_n$$
+            Which is equivalent to our optimal $w^*$ above.
+
+            \item No none of the above derivations relied on assumptions that $x$ and $y$ are jointly Gaussian. This is because our moment terms, which are just expectations, are simply sums that are used similarly with all distributions. The rest of the derivations simply relied on laws of Expectations which do not change.  
+	\end{enumerate}
 \end{solution}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
+
 \begin{problem}[Basis Regression, 30pts]
 
  Having reviewed the theory, we now implement some linear regression models for the temperature. If we just directly use the data as given to us, we would only have
@@ -327,7 +392,26 @@ expectation taken over the joint distribution $p(x,y)$. This essentially just me
 
 \newpage 
 \begin{solution}
-	Your solution here.
+	\begin{enumerate}
+	    \item These are the resulting plots  
+                \begin{figure} [htp] \centering                             \includegraphics[width=0.8\linewidth]{img_output/p3.1.png} \caption{Basis Regression Plots} \label{fig:enter-label} \end{figure}
+
+            \item Here are the resulting test-set MSE values:
+            \\ MSE for part a: 7.96
+            \\ MSE for part b: 8.71
+            \\ MSE for part c: 5.97
+            \\ MSE for part d: 58.89
+            \\ I suspect that part d is overfit. Part d, has a very high test MSE value, and after calculating its training MSE (0.64), it is quite clearly overfit. Looking at the plot we can see that it is extremely complex in order for the model to accurately incorporate every data point in the training data. However, this jeopardizes its generalizability in the test set. I suspect that part b, and even maybe part a, could be argued as underfit, as their MSEs are not as low as part c. Furthermore, their plots look unconvincing in their ability to capture any trends (especially true for part b). That being said, just looking at the original data, there are not the most clear trends in the data. Part c however, has the best test data MSE and seems to have some level of complexity without being too biased to noise in the training data (Goldilocks zone). 
+
+            \item The transformations $f$ serve to incorporate more information into the training set. They map the data into  higher dimension where a linear regression model may be suitable. In many cases, the data, in its original form, does not show linear trends (as we can see with this problem), however, choosing ways to map it into higher dimensions (our different basis functions), can map the data into a dimension that it may be more linear. It does not change the underlying shape of the data, but simply allows the model to be more complex via increased dimensionality (while still staying linear in those higher dimensions). As such we can still use a linear model, but perform an effective regression on more complex data trends. 
+
+            \item The space complexity of linear regression is simply storing the training set (N). Since this is what the model is trained on it needs to store those values, however once finished training it is no longer necessary and only the weights must be stored, which will be of size D. This is because if each data point has D features, then there has to be an associated D features/weights in $\textbf{w}$. As $N$ increases, the space complexity for training increases linearly with $O(N)$ growth as well as $O(D)$ depending on whether $D$ is also increasing. However, only a vector of size $D$ is necessary to be stored for predictions. Then for time complexity, we use the closed solution of $\bm{\hat w} = (\bm X^\top \bm X)^{-1}\bm X^\top \bm y$. The inversion of a matrix is a long series of arithmetic and is $D^3$ time complexity. Then the heavy matrix multiplication of $N\text{x}D$ matrices takes $O(ND^2)$. The dominant time complexity is then one which is bigger $D^3$ or $ND^2$. Then in order to execute predictions you simply have $D$ operations for each of the features in an input value, and is not dependent on the size of training set other than the number of features each training point has.
+            \\\\
+            Whereas kNN and kernelized regression require all the training data points for every prediction calculation, linear regression does not. This means the space complexity is greater for those methods after training. With that being said, linear regression requires more extensive training calculation (time complexity), as described above, assuming for kNN and kernelized regression you have $k$ and $\tau$ set. In terms of time complexity for prediction, it is a similar story. Linear regression is $O(D)$ calculations for predictions, kernelized regression is $O(ND)$ (computing the kernel is this complexity), and kNN is $O(ND + N\log N)$ (finding distances, and sorting). 
+
+            \item When looking to compare these methods you are balancing 3 factors. 1) Actual predictive performance 2) Time and space complexity 3) Frequency of predictions. Obviously the priority is predictive performance, but maybe you would be willing to sacrifice a little bit of performance in return lower time and space complexity. Furthermore, when comparing models, with similar predictive capability, an important thing to recognize is will you be predicting often or just once. If it is often then, linear regression is likely a better choice, because it has a heavier pre-processing complexity, but once the weights are established the prediction calculations are much less, so over time you save complexity over the other methods. On the other hand, if you only need to predict once, then maybe kernelized regression or kNN is better to avoid heavier pre-processing costs in linear regression (holding predictive performance constant). I would argue that there is no one model that is better or worse, it simply relies on the priorities that an investigator is recognizing as they are building the model. Thus since you have these multiple regression functions, you should be able to recognize which method works best for your situation. 
+            
+        \end{enumerate}
 \end{solution}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -372,7 +456,7 @@ Note that minimizing $\mathcal{L}_{lasso}(\boldw)$ is exactly what LASSO regress
         \item Repeat step (b) until convergence or the maximum number of iterations is reached.
     \end{enumerate} 
 
-    Implement the \texttt{find\_lasso\_weights} function according to the above algorithm, letting $\boldw_0$ be a vector of ones and the max number of iterations be 5000. Then, fit models with $\lambda=1, 10$ to basis (d) from Problem 3, plot the predictions, and compute the MSE's. You will need to do some preprocessing, but a completed helper function for this is already provided. How do the graphs and errors compare to those for the unregularized basis (d) model? 
+    Implement the \texttt{find\_lasso\_weights} function according to the above algorithm, letting the max number of iterations be 5000. Then, fit models with $\lambda=1, 10$ to basis (d) from Problem 3, plot the predictions, and compute the MSE's. You will need to do some preprocessing, but a completed helper function for this is already provided. How do the graphs and errors compare to those for the unregularized basis (d) model? 
 
 
 \end{enumerate}
@@ -381,7 +465,57 @@ Note that minimizing $\mathcal{L}_{lasso}(\boldw)$ is exactly what LASSO regress
 
 \newpage
 \begin{solution}
-	Your solution here.
+	\begin{enumerate}
+	    \item Since we only need to maximize with respect to $\textbf{w}$ then we focus on the numerator of the posterior distribution. $$p(\textbf{y}|\textbf{w},\textbf{X})p(\textbf{w}) = $$ 
+        
+        $$p(\textbf{y}|\textbf{X},\textbf{w}) = \mathcal{N}(\textbf{y}|\textbf{Xw}, \sigma^2\textbf{I})$$
+        $$p(\textbf{w}) = \mathcal{N}(\textbf{w}|0, \frac{\sigma^2}{\lambda})$$
+        Then on the likelihood side: $$p(\textbf{y}|\textbf{w},\textbf{X}) = \frac{1}{(2\pi\sigma^2)^{N/2}}\exp(\frac{-1}{2\sigma^2}||\textbf{y} - \textbf{Xw}||_2^2$$
+        N is the number of data points. 
+        $$p(\textbf{w}) = \frac{1}{(2\pi\sigma^2/\lambda)^{D/2}}\exp(\frac{-\lambda}{2\sigma^2})||\textbf{w}||_2^2$$
+        D is dimensionality of the weight vector $\textbf{w}$. Now we will take the log of the complete posterior term (importantly we are also dropping constants that do not depend on y in the first term and w in the second):
+        $$\log(p(w|X,y))\propto\log(p(y|X,w)p(w)= -\frac{1}{2\sigma^2}||\textbf{y} - \textbf{Xw}||^2_2-\frac{\lambda}{2\sigma^2}||\textbf{w}||^2_2 + constant$$
+        Finally we take the negative of the function. This is where we switch from maximizing to minimizing as taking the negative of a function switches the direction of optimization (i.e. maximizing to minimizing).
+        $$\log(p(y|X,w)p(w)= \frac{1}{2\sigma^2}||\textbf{y} + \textbf{Xw}||^2_2-\frac{\lambda}{2\sigma^2}||\textbf{w}||^2_2 + constant$$
+       This is equivalent to the $\mathcal{L}_{ridge}(\boldw)$ term. We can see that there are additional $\sigma^2$, but when optimizing these are canceled as they are constant factors not dependent on $w$. Futhermore, we are minimizing this function, because when we take the negative log, we flip the optimization problem from maximizing the posterior, to minimizing the negative log-posterior
+
+        \item To solve for value of $\textbf{w}$ that minimizes $\mathcal{L}_{ridge}(\boldw)$, we set its derivative equal to 0. 
+            $$\frac{d\mathcal{L}}{dw} = 0 = d/dw(\frac{1}{2}(\textbf{y} -\textbf{Xw})^\top(\textbf{y} -\textbf{Xw})+\frac{\lambda}{2} \textbf{w}^\top\textbf{w})$$
+            $$d/dw(\frac{1}{2}(\textbf{y}^\top\textbf{y}-2\textbf{y}^\top\textbf{Xw}) + \textbf{Xw}^\top\textbf{Xw} +\frac{\lambda}{2} \textbf{w}^\top\textbf{w}) = -\textbf{y}^\top\textbf{X}+\textbf{X}^\top\textbf{Xw}+\lambda\textbf{w} = 0$$
+            simplifying...
+            $$\textbf{X}^\top\textbf{Xw}+\lambda\textbf{w} = \textbf{yX}^\top$$
+            solve for $\textbf{w}$...
+            $$\textbf{w}(\textbf{X}^\top\textbf{X}+\lambda\textbf{I})=\textbf{X}^\top\textbf{y}$$
+            $$\textbf{w} = (\textbf{X}^\top\textbf{X}+\lambda\textbf{I})^{-1}\textbf{X}^\top\textbf{y}$$
+
+            \item 
+            The first term ($p(\textbf{y}|\textbf{X}, \textbf{w})$) of the posterior distribution ($p(\textbf{w}|\textbf{y}, \textbf{X}$)) remains the same because even though here we are using a different distribution of $\textbf{w}$ that first term is conditioned on $\textbf{w}$. Thus we will focuse on the second term of the posterior distribution ($p(\textbf{w})$). The PDF of the Laplace distribution for $w_d$ is $=\frac{1}{2b}\exp(-\frac{|x-a|}{b})$
+            thus $\textbf{w}$ with $w_d \sim L\left(0,\frac{2\sigma^2}{\lambda}\right)$ is
+            $$p(\textbf{w}) = \prod_{d=1}^D\frac{\lambda}{2\sigma^2}\exp(-\frac{\lambda}{2\sigma^2}|w_d|)$$
+            We can take the log to get rid of the products and reduce the exponential. 
+            $$\log p(\textbf{w}) = - \frac{\lambda}{2\sigma^2}||\textbf{w}||_1$$
+            Lets combine it back with the first term (we will have taken the log already to that term). Thus
+            $$\log p(\textbf{w}|\textbf{X},\textbf{y}) = -\frac{1}{2\sigma^2}||\textbf{y}-\textbf{Xw}||^2_2-\frac{\lambda}{2\sigma^2}||\textbf{w}||_1$$
+            Similar to above, we now take the negative to switch the direction of optimization. So instead of maximizing we are now minimizing. 
+            $$\log p(\textbf{w}|\textbf{X},\textbf{y}) = \frac{1}{2\sigma^2}||\textbf{y}-\textbf{Xw}||^2_2+\frac{\lambda}{2\sigma^2}||\textbf{w}||_1$$
+            This is the same as minimizing $\mathcal{L}_{lasso}(\boldw)$. Also similar to above, we are left with $\sigma^2$ terms, but when we are optimizing, these constant factors, and thus will cancel out when solving for an optimal w.
+            \item The reason there is no general closed form for the LASSO estimator is because when we introduce that the PDF of $w$ as the Laplace distribution $\prod_{d=1}^D\frac{\lambda}{2\sigma^2}\exp(-\frac{\lambda}{2\sigma^2}|w_d|)$, which introduces a L1 term, that is, an absolute value term. This means that the function is no longer differentiable at 0, and as a result we cannot find a gradient with respect to w. As such there will not be a closed form solution, only iterative methods to narrow in on the optimal weights. 
+
+            \item Here are the plots of the fitted models. 
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.5\linewidth]{img_output/p4.5.png}
+                \caption{Lasso Regression}
+                \label{fig:enter-label}
+            \end{figure}
+
+            The resulting test MSE values were:
+            \\ $\lambda = 1$ : $19.27$
+            \\ $\lambda = 10$: $10.03$
+            \\ This shows that the reduced dimensionality/complexity due to LASSO regression, helped improve the MSE significantly. Before, the MSE was $58$, and now with $\lambda=10$ it was reduced to $10.03$, a major improvement. With that being said, looking at the plot, I do not think it captures the trends that well, and may simply have improved accuracy by having less variance and staying more centralized to the plot. Nonetheless, this method did help in the end, and it does capture the trends in some regard. 
+
+            
+	\end{enumerate}
 \end{solution}
 
 
@@ -389,7 +523,7 @@ Note that minimizing $\mathcal{L}_{lasso}(\boldw)$ is exactly what LASSO regress
 % Name and Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\subsection*{Name}
+\subsection*{Name} Ethan Veghte
 
 \subsection*{Collaborators and Resources}
 Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
